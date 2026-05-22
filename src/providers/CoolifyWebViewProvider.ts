@@ -115,10 +115,10 @@ export class CoolifyWebViewProvider implements vscode.WebviewViewProvider {
 
         if (Array.isArray(environments)) {
           for (const env of environments) {
-            if (env.id !== undefined && env.name) {
+            if (env.id !== undefined) {
               this.envMap.set(env.id, {
                 projectUuid: project.uuid,
-                environmentName: env.name
+                environmentName: env.uuid || env.name
               });
             }
           }
@@ -150,14 +150,18 @@ export class CoolifyWebViewProvider implements vscode.WebviewViewProvider {
     const apps = this.rawApps.map((a: any) => {
       let consoleUrl = `${serverUrl}/project`;
       let projectUuid = a.project_uuid || a.project?.uuid || a.environment?.project?.uuid;
-      let environmentName = a.environment_name || a.environment?.name || a.environment?.uuid;
+      let environmentName = a.environment?.uuid;
 
       if ((!projectUuid || !environmentName) && a.environment_id !== undefined && a.environment_id !== null) {
         const envInfo = this.envMap.get(a.environment_id);
         if (envInfo) {
-          projectUuid = envInfo.projectUuid;
-          environmentName = envInfo.environmentName;
+          if (!projectUuid) { projectUuid = envInfo.projectUuid; }
+          if (!environmentName) { environmentName = envInfo.environmentName; }
         }
+      }
+
+      if (!environmentName) {
+        environmentName = a.environment_name || a.environment?.name;
       }
 
       if (projectUuid && environmentName) {
