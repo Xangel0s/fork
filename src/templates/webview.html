@@ -179,13 +179,38 @@
       text-overflow: ellipsis;
     }
 
+    .card-subtitle-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 2px;
+      min-width: 0;
+    }
+
     .card-subtitle {
       font-size: 11px;
       color: var(--vscode-descriptionForeground);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      margin-top: 1px;
+      flex: 1;
+      margin-top: 0;
+    }
+
+    .open-url-btn {
+      color: var(--vscode-textLink-foreground);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2px;
+      border-radius: 4px;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+
+    .open-url-btn:hover {
+      color: var(--vscode-textLink-activeForeground);
+      background: rgba(255, 255, 255, 0.08);
     }
 
     .chevron-icon {
@@ -476,7 +501,7 @@
       <div class="search-input-wrapper">
         <!-- Ícono de Lupa (SVG) -->
         <svg class="search-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="text" id="appSearch" placeholder="Buscar contenedor..." class="search-input">
+        <input type="text" id="appSearch" placeholder="Search container..." class="search-input">
       </div>
       <button id="refreshBtn" class="refresh-header-btn" title="Force Refresh">
         <!-- Ícono de refrescar (SVG) -->
@@ -486,9 +511,9 @@
 
     <!-- Segmented Control de Filtro de Apps -->
     <div class="segmented-control" id="statusFilterControl">
-      <button class="segment-btn active" data-value="all">Todos</button>
-      <button class="segment-btn" data-value="deployed">Desplegados</button>
-      <button class="segment-btn" data-value="stopped">No Desplegados</button>
+      <button class="segment-btn active" data-value="all">All</button>
+      <button class="segment-btn" data-value="deployed">Deployed</button>
+      <button class="segment-btn" data-value="stopped">Not Deployed</button>
     </div>
 
     <div id="applications" class="cards-container">
@@ -508,10 +533,10 @@
 
     <!-- Segmented Control de Filtro de Historial -->
     <div class="segmented-control" id="historyFilterControl">
-      <button class="segment-btn active" data-value="all">Todos</button>
-      <button class="segment-btn" data-value="success">Exitosas</button>
-      <button class="segment-btn" data-value="failed">Fallidas</button>
-      <button class="segment-btn" data-value="in_progress">En Progreso</button>
+      <button class="segment-btn active" data-value="all">All</button>
+      <button class="segment-btn" data-value="success">Success</button>
+      <button class="segment-btn" data-value="failed">Failed</button>
+      <button class="segment-btn" data-value="in_progress">In Progress</button>
     </div>
 
     <div id="deployment-history" class="cards-container">
@@ -728,10 +753,26 @@
 
             html += '<div class="card app-card" data-status="' + rawStatus + '" style="display:' + disp + '" data-uuid="' + app.id + '">';
             // Header: Click abre/cierra los detalles
+            var fqdn = app.fqdn || '';
+            var primaryUrl = '';
+            if (fqdn) {
+              primaryUrl = fqdn.split(',')[0].trim();
+              if (!/^https?:\/\//i.test(primaryUrl)) {
+                primaryUrl = 'https://' + primaryUrl;
+              }
+            }
+
             html +=   '<div class="card-header" onclick="toggleDetails(\'' + app.id + '\')">';
             html +=     '<div style="display:flex; flex-direction:column; gap:2px; min-width:0; flex:1">';
             html +=       '<div class="card-title app-name">' + app.name + '</div>';
-            html +=       '<div class="card-subtitle">' + (app.fqdn || 'No URL configured') + '</div>';
+            html +=       '<div class="card-subtitle-wrapper">';
+            html +=         '<div class="card-subtitle" title="' + (app.fqdn || 'No URL configured') + '">' + (app.fqdn || 'No URL configured') + '</div>';
+            if (primaryUrl) {
+              html +=       '<a href="' + primaryUrl + '" target="_blank" class="open-url-btn" onclick="event.stopPropagation();" title="Open Application URL">';
+              html +=         '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>';
+              html +=       '</a>';
+            }
+            html +=       '</div>';
             html +=     '</div>';
             html +=     '<svg class="chevron-icon ' + rotatedClass + '" id="chevron-' + app.id + '" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
             html +=   '</div>';
