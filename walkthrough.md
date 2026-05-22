@@ -35,6 +35,10 @@ We localized all user-facing strings to English, resolved the webview popup bloc
 
 ### Version Control
 - All changes have been committed cleanly:
+  - `fix(webview): resolve environment uuid instead of human name for console urls`
+  - `fix(webview): add missing environment segment to console url template`
+  - `docs: update task list to include url redirect fix and repository configuration`
+  - `docs: add implementation plan, task, and walkthrough documents`
   - `feat: resolve project and environment mapping to fix container console URLs`
   - `feat(webview): change dashboard icon to open link icon and fix sandbox link navigation`
   - `feat(webview): add fallback dashboard button for containers without FQDN`
