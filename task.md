@@ -1,0 +1,5 @@
+- [x] Add `getProjects` and `getProjectEnvironments` methods to `CoolifyService.ts`
+- [x] Implement cache mapping and API fetching for projects and environments in `CoolifyWebViewProvider.ts`
+- [x] Rebuild precise `consoleUrl` in `emitState` using the resolved cache map
+- [x] Compile and verify the extension build via `pnpm run compile`
+- [x] Create a git commit for the changes
