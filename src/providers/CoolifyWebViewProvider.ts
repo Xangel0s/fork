@@ -10,9 +10,10 @@ interface RetryConfig {
 }
 
 interface WebViewMessage {
-  type: 'refresh' | 'deploy' | 'configure' | 'reconfigure' | 'view-logs' | 'check-status' | 'clear-history';
+  type: 'refresh' | 'deploy' | 'configure' | 'reconfigure' | 'view-logs' | 'check-status' | 'clear-history' | 'open-link';
   applicationId?: string;
   lines?: string;
+  url?: string;
 }
 
 interface SnapshotApp {
@@ -901,6 +902,11 @@ export class CoolifyWebViewProvider implements vscode.WebviewViewProvider {
         break;
       case 'clear-history':
         await this.handleClearHistory();
+        break;
+      case 'open-link':
+        if (message.url) {
+          await vscode.env.openExternal(vscode.Uri.parse(message.url));
+        }
         break;
     }
   }

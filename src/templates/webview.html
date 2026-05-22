@@ -555,6 +555,13 @@
       var saved = vscode.getState() || {};
       var expandedApps = new Set(saved.expandedApps || []);
 
+      // Registrar función global para abrir links mediante VS Code
+      window.openLink = function(url) {
+        if (url && url !== '#') {
+          vscode.postMessage({ type: 'open-link', url: url });
+        }
+      };
+
       // Registrar función global para togglear detalles de tarjeta
       window.toggleDetails = function(uuid) {
         var detailsEl = document.getElementById('details-' + uuid);
@@ -768,12 +775,12 @@
             html +=       '<div class="card-subtitle-wrapper">';
             html +=         '<div class="card-subtitle" title="' + (app.fqdn || 'No URL configured') + '">' + (app.fqdn || 'No URL configured') + '</div>';
             if (primaryUrl) {
-              html +=       '<a href="' + primaryUrl + '" target="_blank" class="open-url-btn" onclick="event.stopPropagation();" title="Open Application URL">';
+              html +=       '<a href="#" class="open-url-btn" onclick="event.stopPropagation(); openLink(\'' + primaryUrl + '\'); return false;" title="Open Application URL">';
               html +=         '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>';
               html +=       '</a>';
             } else {
-              html +=       '<a href="' + (app.consoleUrl || '#') + '" target="_blank" class="open-url-btn" onclick="event.stopPropagation();" title="Open in Coolify Console">';
-              html +=         '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>';
+              html +=       '<a href="#" class="open-url-btn" onclick="event.stopPropagation(); openLink(\'' + (app.consoleUrl || '#') + '\'); return false;" title="Open in Coolify Console">';
+              html +=         '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>';
               html +=       '</a>';
             }
             html +=       '</div>';
