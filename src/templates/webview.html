@@ -1,403 +1,839 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <style>
-      body {
-        font-family: var(--vscode-font-family);
-        color: var(--vscode-foreground);
-        padding: 12px;
-        display: flex;
-        flex-direction: column;
-        gap: 24px;
-      }
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline';">
+  <title>Coolify</title>
+  <style>
+    :root {
+      --accent-color: #f43f5e; /* Rosado/Carmesí de la marca Coolify */
+      --accent-hover: #e11d48;
+      --accent-glow: rgba(244, 63, 94, 0.4);
+    }
 
-      .section {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-      }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, var(--vscode-font-family), sans-serif;
+      color: var(--vscode-foreground);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      background: var(--vscode-sideBar-background, var(--vscode-editor-background));
+    }
 
-      .section-header {
-        position: relative;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        flex-wrap: wrap;
-        gap: 12px;
-      }
+    .section {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
 
-      .section-header h3 {
-        margin: 0;
-        font-size: 14px;
-        font-weight: 600;
-        color: var(--vscode-foreground);
-      }
+    .section-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--vscode-descriptionForeground);
+      margin: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
 
-      .refresh-button {
-        padding: 4px 8px;
-        background: transparent;
-        color: var(--vscode-button-foreground);
-        border: 1px solid var(--vscode-button-background);
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 12px;
-      }
+    /* Contenedor de Búsqueda y Refresh */
+    .search-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
 
-      .refresh-button:hover {
-        background: var(--vscode-button-background);
-      }
+    .search-input-wrapper {
+      position: relative;
+      flex: 1;
+      display: flex;
+      align-items: center;
+    }
 
-      .cards-container {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-      }
+    .search-icon {
+      position: absolute;
+      left: 8px;
+      color: var(--vscode-descriptionForeground);
+      opacity: 0.7;
+      pointer-events: none;
+    }
 
-      .card {
-        background: var(--vscode-editor-background);
-        border: 1px solid var(--vscode-widget-border);
-        border-radius: 8px;
-        padding: 12px;
-        min-width: 0;
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-      }
+    .search-input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 6px 8px 6px 28px;
+      background: var(--vscode-input-background, #1e1e1e);
+      color: var(--vscode-input-foreground);
+      border: 1px solid var(--vscode-input-border, rgba(128, 128, 128, 0.2));
+      border-radius: 6px;
+      font-size: 12px;
+      outline: none;
+      transition: all 0.2s;
+    }
 
-      .card-main {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-      }
+    .search-input:focus {
+      border-color: var(--vscode-focusBorder, var(--accent-color));
+      box-shadow: 0 0 0 1px var(--vscode-focusBorder, var(--accent-color));
+    }
 
-      .card-title {
-        font-weight: 600;
-        font-size: 14px;
-        color: var(--vscode-editor-foreground);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
+    .refresh-header-btn {
+      background: transparent;
+      color: var(--vscode-foreground);
+      border: 1px solid var(--vscode-widget-border, rgba(128, 128, 128, 0.2));
+      border-radius: 6px;
+      padding: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
 
-      .card-subtitle {
-        font-size: 12px;
-        color: var(--vscode-descriptionForeground);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
+    .refresh-header-btn:hover {
+      background: var(--vscode-list-hoverBackground, rgba(255, 255, 255, 0.05));
+      border-color: var(--vscode-focusBorder, var(--accent-color));
+    }
 
-      .card-content {
-        display: grid;
-        grid-template-columns: minmax(80px, auto) 1fr;
-        gap: 6px 12px;
-        font-size: 12px;
-      }
+    /* Control Segmentado (Pills) */
+    .segmented-control {
+      display: flex;
+      background: var(--vscode-input-background, rgba(0, 0, 0, 0.15));
+      border: 1px solid var(--vscode-input-border, rgba(128, 128, 128, 0.15));
+      border-radius: 20px;
+      padding: 2px;
+      gap: 2px;
+      margin-bottom: 8px;
+    }
 
-      .card-footer {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        justify-content: space-between;
-        align-items: center;
-        padding-top: 12px;
-        border-top: 1px solid var(--vscode-widget-border);
-      }
+    .segment-btn {
+      flex: 1;
+      border: none;
+      background: transparent;
+      color: var(--vscode-descriptionForeground);
+      padding: 5px 8px;
+      font-size: 11px;
+      font-weight: 500;
+      border-radius: 16px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      outline: none;
+      text-align: center;
+      white-space: nowrap;
+    }
 
-      .label {
-        color: var(--vscode-descriptionForeground);
-        white-space: nowrap;
-      }
+    .segment-btn.active {
+      background: var(--accent-color);
+      color: #ffffff !important;
+      font-weight: 600;
+      box-shadow: 0 2px 6px var(--accent-glow);
+    }
 
-      .value {
-        color: var(--vscode-foreground);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        min-width: 0;
-      }
+    .segment-btn:hover:not(.active) {
+      color: var(--vscode-foreground);
+      background: rgba(255, 255, 255, 0.05);
+    }
 
-      .status {
-        padding: 2px 8px;
-        border-radius: 12px;
-        font-size: 12px;
-        background: var(--vscode-badge-background);
-        color: var(--vscode-badge-foreground);
-        white-space: nowrap;
-        max-width: 100%;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
+    /* Tarjetas de Aplicación */
+    .cards-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
 
-      .deployment-status {
-        animation: pulse 2s infinite;
-        background: var(--vscode-statusBarItem-warningBackground);
-        color: var(--vscode-statusBarItem-warningForeground);
-      }
+    .card {
+      background: var(--vscode-welcomePage-tileBackground, var(--vscode-list-hoverBackground, rgba(255, 255, 255, 0.02)));
+      border: 1px solid var(--vscode-widget-border, rgba(128, 128, 128, 0.15));
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
 
-      .deployment-card {
-        position: relative;
-        border-left: 4px solid var(--vscode-statusBarItem-warningBackground);
-      }
+    .card:hover {
+      border-color: var(--vscode-focusBorder, var(--accent-color));
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    }
 
-      .deployment-time {
-        font-size: 12px;
-        color: var(--vscode-descriptionForeground);
-      }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+      gap: 8px;
+    }
 
-      .commit-message {
-        font-size: 12px;
-        color: var(--vscode-foreground);
-        line-height: 1.4;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
+    .card-title {
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--vscode-foreground);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
 
-      .deploy-button {
-        padding: 4px 12px;
-        background: var(--vscode-button-background);
-        color: var(--vscode-button-foreground);
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 12px;
-        white-space: nowrap;
-      }
+    .card-subtitle {
+      font-size: 11px;
+      color: var(--vscode-descriptionForeground);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 1px;
+    }
 
-      .deploy-button:hover {
-        background: var(--vscode-button-hoverBackground);
-      }
+    .chevron-icon {
+      transition: transform 0.3s ease;
+      color: var(--vscode-descriptionForeground);
+      flex-shrink: 0;
+      opacity: 0.7;
+    }
 
-      .loading {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        padding: 20px;
-        color: var(--vscode-descriptionForeground);
-      }
+    .chevron-icon.rotated {
+      transform: rotate(180deg);
+      color: var(--accent-color);
+      opacity: 1;
+    }
 
-      .loading-spinner {
-        width: 16px;
-        height: 16px;
-        border: 2px solid var(--vscode-widget-border);
-        border-top-color: var(--vscode-button-background);
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-      }
+    /* Detalles Expandibles */
+    .card-details {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease, padding 0.2s ease;
+      opacity: 0;
+      border-top: 1px dashed var(--vscode-widget-border, rgba(128, 128, 128, 0.15));
+      padding-top: 0;
+    }
 
-      .refresh-button {
-        position: relative;
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-      }
+    .card-details.expanded {
+      max-height: 120px;
+      opacity: 1;
+      padding-top: 8px;
+      margin-top: 2px;
+    }
 
-      .refresh-button.refreshing {
-        opacity: 0.7;
-        cursor: not-allowed;
-      }
+    .details-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      font-size: 11px;
+    }
 
-      .empty {
-        text-align: center;
-        padding: 20px;
-        color: var(--vscode-descriptionForeground);
-        font-style: italic;
-      }
+    .details-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
 
-      @keyframes spin {
-        to {
-          transform: rotate(360deg);
-        }
-      }
+    .details-row .label {
+      color: var(--vscode-descriptionForeground);
+      font-weight: 500;
+    }
 
-      @keyframes pulse {
-        0% {
-          opacity: 1;
-        }
-        50% {
-          opacity: 0.5;
-        }
-        100% {
-          opacity: 1;
-        }
-      }
+    .details-row .value {
+      color: var(--vscode-foreground);
+      text-align: right;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 170px;
+    }
 
-      @keyframes progress {
-        0% {
-          width: 0;
-        }
-        100% {
-          width: 100%;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <div class="section">
-      <div class="section-header">
-        <h3>Applications</h3>
-        <button
-          class="refresh-button"
-          id="refresh-button"
-          onclick="refreshData()"
-        >
-          <span>↻ Force Refresh</span>
-        </button>
+    /* Footer y Botones de la Tarjeta */
+    .card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      padding-top: 8px;
+      border-top: 1px solid var(--vscode-widget-border, rgba(128, 128, 128, 0.1));
+    }
+
+    .footer-left {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .footer-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Badges de Estado Modernos */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 8px;
+      border-radius: 20px;
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+    }
+
+    .status-healthy {
+      background-color: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    .status-failed {
+      background-color: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .status-starting {
+      background-color: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.2);
+      animation: pulse-border 1.5s infinite alternate;
+    }
+
+    .status-stopped {
+      background-color: rgba(156, 163, 175, 0.15);
+      color: #d1d5db;
+      border: 1px solid rgba(156, 163, 175, 0.2);
+    }
+
+    @keyframes pulse-border {
+      0% { border-color: rgba(245, 158, 11, 0.15); box-shadow: 0 0 2px rgba(245, 158, 11, 0.05); }
+      100% { border-color: rgba(245, 158, 11, 0.5); box-shadow: 0 0 6px rgba(245, 158, 11, 0.25); }
+    }
+
+    /* Botones Modernos */
+    .btn-check {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: var(--vscode-descriptionForeground);
+      padding: 4px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .btn-check:hover {
+      color: var(--vscode-foreground);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .select-logs {
+      padding: 4px 6px;
+      background: var(--vscode-dropdown-background, #2d2d2d);
+      color: var(--vscode-dropdown-foreground, #cccccc);
+      border: 1px solid var(--vscode-dropdown-border, rgba(128, 128, 128, 0.2));
+      border-radius: 4px;
+      font-size: 11px;
+      outline: none;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+
+    .select-logs:hover {
+      border-color: var(--vscode-focusBorder, var(--accent-color));
+    }
+
+    .btn-logs {
+      background: var(--vscode-button-secondaryBackground, rgba(255, 255, 255, 0.05));
+      color: var(--vscode-button-secondaryForeground, #ffffff) !important;
+      border: 1px solid var(--vscode-button-border, rgba(128, 128, 128, 0.15));
+      border-radius: 4px;
+      cursor: pointer;
+      padding: 4px 8px;
+      font-size: 11px;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .btn-logs:hover {
+      background: var(--vscode-button-secondaryHoverBackground, rgba(255, 255, 255, 0.1));
+      border-color: rgba(128, 128, 128, 0.3);
+    }
+
+    .btn-deploy {
+      background: var(--accent-color);
+      color: #ffffff !important;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      padding: 5px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      box-shadow: 0 1px 3px var(--accent-glow);
+      transition: all 0.2s;
+    }
+
+    .btn-deploy:hover {
+      background: var(--accent-hover);
+      box-shadow: 0 3px 6px var(--accent-glow);
+      transform: translateY(-0.5px);
+    }
+
+    .btn-deploy:active {
+      transform: translateY(0.5px);
+    }
+
+    /* Historial de Despliegues */
+    .history-item {
+      background: var(--vscode-welcomePage-tileBackground, var(--vscode-list-hoverBackground, rgba(255, 255, 255, 0.01)));
+      border: 1px solid var(--vscode-widget-border, rgba(128, 128, 128, 0.12));
+      border-radius: 6px;
+      padding: 8px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      margin-bottom: 6px;
+      transition: all 0.2s;
+    }
+
+    .history-item:hover {
+      border-color: rgba(128, 128, 128, 0.25);
+    }
+
+    .history-status-success { border-left: 3px solid #10b981; }
+    .history-status-failed { border-left: 3px solid #ef4444; }
+    .history-status-in_progress { border-left: 3px solid #f59e0b; animation: pulse-border-left 1s infinite alternate; }
+    .history-status-cancelled { border-left: 3px solid #9ca3af; }
+
+    @keyframes pulse-border-left {
+      0% { border-left-color: rgba(245, 158, 11, 0.3); }
+      100% { border-left-color: rgba(245, 158, 11, 1); }
+    }
+
+    .btn-clear-history {
+      background: transparent;
+      color: var(--vscode-errorForeground, #f87171);
+      border: none;
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+
+    .btn-clear-history:hover {
+      background: rgba(248, 113, 113, 0.1);
+    }
+
+    /* Animaciones y Estados de Carga */
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 20px;
+      color: var(--vscode-descriptionForeground);
+      font-size: 12px;
+    }
+
+    .loading-spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid var(--vscode-widget-border, rgba(128, 128, 128, 0.2));
+      border-top-color: var(--accent-color);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 20px;
+      color: var(--vscode-descriptionForeground);
+      font-style: italic;
+      font-size: 11px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .spinning {
+      animation: spin 0.8s linear infinite;
+    }
+  </style>
+</head>
+<body>
+  <!-- MÓDULO DE APLICACIONES -->
+  <div class="section">
+    <div class="section-title">Applications</div>
+
+    <div class="search-container">
+      <div class="search-input-wrapper">
+        <!-- Ícono de Lupa (SVG) -->
+        <svg class="search-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="appSearch" placeholder="Buscar contenedor..." class="search-input">
       </div>
-      <div id="applications" class="cards-container">
-        <div class="loading">
-          <div class="loading-spinner"></div>
-          Loading applications...
-        </div>
-      </div>
+      <button id="refreshBtn" class="refresh-header-btn" title="Force Refresh">
+        <!-- Ícono de refrescar (SVG) -->
+        <svg id="refreshIcon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+      </button>
     </div>
 
-    <div class="section">
-      <div class="section-header">
-        <h3>Active Deployments</h3>
-      </div>
-      <div id="deployments" class="cards-container">
-        <div class="loading">
-          <div class="loading-spinner"></div>
-          Loading deployments...
-        </div>
-      </div>
+    <!-- Segmented Control de Filtro de Apps -->
+    <div class="segmented-control" id="statusFilterControl">
+      <button class="segment-btn active" data-value="all">Todos</button>
+      <button class="segment-btn" data-value="deployed">Desplegados</button>
+      <button class="segment-btn" data-value="stopped">No Desplegados</button>
     </div>
 
-    <script>
-      const vscode = acquireVsCodeApi();
-      let isRefreshing = false;
+    <div id="applications" class="cards-container">
+      <div class="loading">
+        <div class="loading-spinner"></div>
+        Loading applications...
+      </div>
+    </div>
+  </div>
 
-      // Restore previous state
-      const previousState = vscode.getState();
-      if (previousState) {
-        updateUI(previousState.applications, previousState.deployments);
-      }
+  <!-- MÓDULO DE HISTORIAL DE DESPLIEGUES -->
+  <div class="section" style="margin-top: 10px; border-top: 1px solid var(--vscode-widget-border, rgba(128, 128, 128, 0.15)); padding-top: 16px;">
+    <div class="section-title">
+      <span>Deployment History</span>
+      <button id="clearHistoryBtn" class="btn-clear-history" title="Clear deployment history">Clear History</button>
+    </div>
 
-      function refreshData() {
-        if (isRefreshing) return;
+    <!-- Segmented Control de Filtro de Historial -->
+    <div class="segmented-control" id="historyFilterControl">
+      <button class="segment-btn active" data-value="all">Todos</button>
+      <button class="segment-btn" data-value="success">Exitosas</button>
+      <button class="segment-btn" data-value="failed">Fallidas</button>
+      <button class="segment-btn" data-value="in_progress">En Progreso</button>
+    </div>
 
-        isRefreshing = true;
-        const indicator = document.getElementById('refresh-indicator');
-        const button = document.getElementById('refresh-button');
+    <div id="deployment-history" class="cards-container">
+      <div class="loading">
+        <div class="loading-spinner"></div>
+        Loading history...
+      </div>
+    </div>
+  </div>
 
-        indicator.style.display = 'block';
-        button.classList.add('refreshing');
-        button.disabled = true;
+  <script>
+    (function () {
+      var vscode = acquireVsCodeApi();
 
-        vscode.postMessage({ type: 'refresh' });
-      }
+      // Cargar estado guardado en memoria de VS Code (con las tarjetas expandidas)
+      var saved = vscode.getState() || {};
+      var expandedApps = new Set(saved.expandedApps || []);
 
-      function deployApplication(applicationId) {
-        vscode.postMessage({ type: 'deploy', applicationId });
-      }
+      // Registrar función global para togglear detalles de tarjeta
+      window.toggleDetails = function(uuid) {
+        var detailsEl = document.getElementById('details-' + uuid);
+        var chevronEl = document.getElementById('chevron-' + uuid);
+        if (!detailsEl || !chevronEl) return;
 
-      function formatDate(dateString) {
-        return new Date(dateString).toLocaleString();
-      }
+        if (expandedApps.has(uuid)) {
+          expandedApps.delete(uuid);
+          detailsEl.classList.remove('expanded');
+          chevronEl.classList.remove('rotated');
+        } else {
+          expandedApps.add(uuid);
+          detailsEl.classList.add('expanded');
+          chevronEl.classList.add('rotated');
+        }
 
-      window.addEventListener('message', (event) => {
-        const message = event.data;
-        switch (message.type) {
-          case 'refresh-data':
-            vscode.setState({
-              applications: message.applications,
-              deployments: message.deployments,
-            });
-            updateUI(message.applications, message.deployments);
-            isRefreshing = false;
-            const indicator = document.getElementById('refresh-indicator');
-            const button = document.getElementById('refresh-button');
-            indicator.style.display = 'none';
-            button.classList.remove('refreshing');
-            button.disabled = false;
-            break;
-          case 'deployment-status':
-            if (message.status === 'failed') {
-              deployingApps.delete(message.applicationId);
-              updateDeployButton(message.applicationId, false);
+        // Guardar estado actual
+        var currentState = vscode.getState() || {};
+        currentState.expandedApps = Array.from(expandedApps);
+        vscode.setState(currentState);
+      };
+
+      // --- Event Delegation ---
+      document.addEventListener('click', function (e) {
+        var target = e.target;
+
+        // Click en refreshBtn principal
+        if (target.id === 'refreshBtn' || target.closest('#refreshBtn')) {
+          var icon = document.getElementById('refreshIcon');
+          if (icon) { icon.classList.add('spinning'); }
+          vscode.postMessage({ type: 'refresh' });
+          setTimeout(function () { if (icon) { icon.classList.remove('spinning'); } }, 2000);
+          return;
+        }
+
+        // Click en segment-btn (Segmented Controls)
+        if (target.classList.contains('segment-btn')) {
+          var parent = target.parentNode;
+          var buttons = parent.querySelectorAll('.segment-btn');
+          for (var i = 0; i < buttons.length; i++) {
+            buttons[i].classList.remove('active');
+          }
+          target.classList.add('active');
+
+          if (parent.id === 'statusFilterControl') {
+            filterApps();
+          } else if (parent.id === 'historyFilterControl') {
+            filterHistory();
+          }
+          return;
+        }
+
+        if (target.id === 'clearHistoryBtn') {
+          vscode.postMessage({ type: 'clear-history' });
+          return;
+        }
+
+        var action = target.getAttribute('data-action');
+        if (action === 'view-logs') {
+          var uuid = target.getAttribute('data-uuid');
+          if (uuid) { vscode.postMessage({ type: 'view-logs', applicationId: uuid, lines: '200' }); }
+          return;
+        }
+
+        // Evitar que botones o selectores activen el click del header expandible
+        if (target.tagName === 'BUTTON' || target.tagName === 'SELECT' || target.tagName === 'OPTION') {
+          // Procesar botones dentro de footer de la app
+          var uuid = target.getAttribute('data-uuid');
+          if (!uuid) return;
+
+          if (target.classList.contains('btn-check') || target.closest('.btn-check')) {
+            var badge = document.getElementById('status-badge-' + uuid);
+            if (badge) {
+              badge.innerText = 'Checking...';
+              badge.className = 'status-badge status-starting';
             }
-            break;
+            vscode.postMessage({ type: 'check-status', applicationId: uuid });
+          } else if (target.classList.contains('btn-logs')) {
+            var sel = document.getElementById('logLines-' + uuid);
+            vscode.postMessage({ type: 'view-logs', applicationId: uuid, lines: sel ? sel.value : '100' });
+          } else if (target.classList.contains('btn-deploy')) {
+            vscode.postMessage({ type: 'deploy', applicationId: uuid });
+          }
+          e.stopPropagation();
+          return;
         }
       });
 
-      function updateUI(applications, deployments) {
-        if (!applications || !deployments) return;
+      document.addEventListener('input', function (e) {
+        if (e.target.id === 'appSearch') { filterApps(); }
+      });
 
-        // Update Applications
-        const appsContainer = document.getElementById('applications');
-        if (applications.length === 0) {
-          appsContainer.innerHTML =
-            '<div class="empty">No applications found</div>';
-        } else {
-          appsContainer.innerHTML = applications
-            .map(
-              (app) => `
-                    <div class="card">
-                        <div class="card-main">
-                            <div class="card-title">${app.name}</div>
-                            <div class="card-subtitle">${
-                              app.fqdn || 'No URL configured'
-                            }</div>
-                            <div class="card-content">
-                                <span class="label">Repository:</span>
-                                <span class="value">${
-                                  app.git_repository || 'N/A'
-                                }</span>
-                                <span class="label">Branch:</span>
-                                <span class="value">${
-                                  app.git_branch || 'N/A'
-                                }</span>
-                                <span class="label">Last Updated:</span>
-                                <span class="value">${formatDate(
-                                  app.updated_at
-                                )}</span>
-                            </div>
-                        </div>
-                        <div class="card-footer">
-                            <span class="status">${app.status}</span>
-                            <button class="deploy-button" onclick="deployApplication('${
-                              app.id
-                            }')">
-                                Deploy
-                            </button>
-                        </div>
-                    </div>
-                `
-            )
-            .join('');
-        }
+      // --- Filtros ---
+      function filterApps() {
+        var input = document.getElementById('appSearch');
+        var searchTerm = input ? input.value.toLowerCase() : '';
+        var activeBtn = document.querySelector('#statusFilterControl .segment-btn.active');
+        var filterValue = activeBtn ? activeBtn.getAttribute('data-value') : 'all';
+        var cards = document.querySelectorAll('.app-card');
 
-        // Update Deployments
-        const deploymentsContainer = document.getElementById('deployments');
-        if (deployments.length === 0) {
-          deploymentsContainer.innerHTML =
-            '<div class="empty">No active deployments</div>';
-        } else {
-          deploymentsContainer.innerHTML = deployments
-            .map(
-              (deployment) => `
-                    <div class="card deployment-card">
-                        <div class="card-main">
-                            <div class="card-title">${deployment.applicationName}</div>
-                            <div class="deployment-time">Started ${deployment.startedAt}</div>
-                            <div class="commit-message">${deployment.commit}</div>
-                        </div>
-                        <div class="card-footer">
-                            <span class="status deployment-status">${deployment.status}</span>
-                        </div>
-                    </div>
-                `
-            )
-            .join('');
+        for (var i = 0; i < cards.length; i++) {
+          var card = cards[i];
+          var nameEl = card.querySelector('.app-name');
+          if (!nameEl) { continue; }
+          var name = nameEl.innerText.toLowerCase();
+          var raw = card.dataset.status || '';
+          var matchSearch = name.includes(searchTerm);
+          var matchFilter = true;
+          if (filterValue === 'deployed') {
+            matchFilter = raw.includes('running') || raw.includes('healthy');
+          } else if (filterValue === 'stopped') {
+            matchFilter = !raw.includes('running') && !raw.includes('healthy');
+          }
+          card.style.display = (matchSearch && matchFilter) ? 'flex' : 'none';
         }
       }
-    </script>
-  </body>
+
+      function filterHistory() {
+        var activeBtn = document.querySelector('#historyFilterControl .segment-btn.active');
+        var filterValue = activeBtn ? activeBtn.getAttribute('data-value') : 'all';
+        var items = document.querySelectorAll('.history-item');
+
+        for (var i = 0; i < items.length; i++) {
+          var item = items[i];
+          var raw = item.dataset.status || '';
+          var show = true;
+          if (filterValue === 'success') {
+            show = raw === 'success';
+          } else if (filterValue === 'failed') {
+            show = raw === 'failed' || raw === 'error';
+          } else if (filterValue === 'in_progress') {
+            show = raw === 'in_progress';
+          }
+          item.style.display = show ? 'flex' : 'none';
+        }
+      }
+
+      function formatDate(d) { return new Date(d).toLocaleString(); }
+
+      window.requestLogs = function (appId) {
+        vscode.postMessage({ type: 'view-logs', applicationId: appId, lines: '200' });
+      };
+
+      // --- Renderizado principal ---
+      function renderFullUI(apps, depHistory) {
+        var container = document.getElementById('applications');
+        if (!container) { return; }
+
+        // --- Aplicaciones ---
+        if (!apps || apps.length === 0) {
+          container.innerHTML = '<div class="empty">No applications found</div>';
+        } else {
+          var html = '';
+          var searchInput = document.getElementById('appSearch');
+          var searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+          var activeBtn = document.querySelector('#statusFilterControl .segment-btn.active');
+          var filterValue = activeBtn ? activeBtn.getAttribute('data-value') : 'all';
+
+          for (var i = 0; i < apps.length; i++) {
+            var app = apps[i];
+            var rawStatus = (app.displayStatus || app.status).toLowerCase();
+            var statusClass = 'status-stopped';
+            var displayStatus = 'Stopped';
+
+            if (rawStatus === 'exited' || rawStatus === 'stopped') {
+              statusClass = 'status-failed';
+              displayStatus = 'Exited';
+            } else if (rawStatus.indexOf('healthy') !== -1) {
+              statusClass = 'status-healthy';
+              displayStatus = 'Healthy';
+            } else if (rawStatus.indexOf('running') !== -1) {
+              statusClass = 'status-healthy';
+              displayStatus = 'Running';
+            } else if (rawStatus.indexOf('starting') !== -1 || rawStatus.indexOf('in_progress') !== -1) {
+              statusClass = 'status-starting';
+              displayStatus = 'Starting';
+            } else if (rawStatus.indexOf('failed') !== -1 || rawStatus.indexOf('error') !== -1 || rawStatus.indexOf('degraded') !== -1) {
+              statusClass = 'status-failed';
+              displayStatus = 'Failed';
+            } else {
+              displayStatus = rawStatus || 'Unknown';
+            }
+
+            var nameMatch = (app.name || '').toLowerCase().includes(searchTerm);
+            var filterMatch = true;
+            if (filterValue === 'deployed') {
+              filterMatch = rawStatus.indexOf('running') !== -1 || rawStatus.indexOf('healthy') !== -1;
+            } else if (filterValue === 'stopped') {
+              filterMatch = rawStatus.indexOf('running') === -1 && rawStatus.indexOf('healthy') === -1;
+            }
+            var disp = (nameMatch && filterMatch) ? 'flex' : 'none';
+
+            var isExpanded = expandedApps.has(app.id);
+            var expandedClass = isExpanded ? ' expanded' : '';
+            var rotatedClass = isExpanded ? ' rotated' : '';
+
+            html += '<div class="card app-card" data-status="' + rawStatus + '" style="display:' + disp + '" data-uuid="' + app.id + '">';
+            // Header: Click abre/cierra los detalles
+            html +=   '<div class="card-header" onclick="toggleDetails(\'' + app.id + '\')">';
+            html +=     '<div style="display:flex; flex-direction:column; gap:2px; min-width:0; flex:1">';
+            html +=       '<div class="card-title app-name">' + app.name + '</div>';
+            html +=       '<div class="card-subtitle">' + (app.fqdn || 'No URL configured') + '</div>';
+            html +=     '</div>';
+            html +=     '<svg class="chevron-icon ' + rotatedClass + '" id="chevron-' + app.id + '" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
+            html +=   '</div>';
+            
+            // Detalles Colapsables
+            html +=   '<div class="card-details ' + expandedClass + '" id="details-' + app.id + '">';
+            html +=     '<div class="details-grid">';
+            html +=       '<div class="details-row"><span class="label">Repository:</span><span class="value" title="' + (app.git_repository || 'N/A') + '">' + (app.git_repository || 'N/A') + '</span></div>';
+            html +=       '<div class="details-row"><span class="label">Branch:</span><span class="value" title="' + (app.git_branch || 'N/A') + '">' + (app.git_branch || 'N/A') + '</span></div>';
+            html +=       '<div class="details-row"><span class="label">Last Updated:</span><span class="value">' + formatDate(app.updated_at) + '</span></div>';
+            html +=     '</div>';
+            html +=   '</div>';
+            
+            // Footer con Acciones
+            html +=   '<div class="card-footer">';
+            html +=     '<div class="footer-left">';
+            html +=       '<span id="status-badge-' + app.id + '" class="status-badge ' + statusClass + '">' + displayStatus + '</span>';
+            html +=       '<button class="btn-check" data-uuid="' + app.id + '" title="Check real status">';
+            html +=         '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>';
+            html +=       '</button>';
+            html +=     '</div>';
+            html +=     '<div class="footer-right">';
+            html +=       '<select id="logLines-' + app.id + '" class="select-logs" data-uuid="' + app.id + '">';
+            html +=         '<option value="50">50 lns</option><option value="100" selected>100 lns</option><option value="500">500 lns</option><option value="1000">1000 lns</option>';
+            html +=       '</select>';
+            html +=       '<button class="btn-logs" data-uuid="' + app.id + '">Logs</button>';
+            html +=       '<button class="btn-deploy" data-uuid="' + app.id + '">Deploy</button>';
+            html +=     '</div>';
+            html +=   '</div>';
+            html += '</div>';
+          }
+          container.innerHTML = html;
+        }
+
+        // --- Historial de Despliegues ---
+        var histContainer = document.getElementById('deployment-history');
+        if (!depHistory || depHistory.length === 0) {
+          histContainer.innerHTML = '<div class="empty">No deployments yet</div>';
+        } else {
+          var hhtml = '';
+          for (var k = 0; k < depHistory.length; k++) {
+            var h = depHistory[k];
+            var rawStatus = (h.status || 'unknown').toLowerCase();
+            var statusClass = 'status-stopped';
+            var displayStatus = 'Unknown';
+            var itemStatusBorderClass = 'history-status-cancelled';
+
+            if (rawStatus === 'success') {
+              statusClass = 'status-healthy';
+              displayStatus = 'Success';
+              itemStatusBorderClass = 'history-status-success';
+            } else if (rawStatus === 'failed' || rawStatus === 'error') {
+              statusClass = 'status-failed';
+              displayStatus = 'Failed';
+              itemStatusBorderClass = 'history-status-failed';
+            } else if (rawStatus === 'in_progress') {
+              statusClass = 'status-starting';
+              displayStatus = 'In Progress';
+              itemStatusBorderClass = 'history-status-in_progress';
+            } else if (rawStatus === 'cancelled') {
+              statusClass = 'status-stopped';
+              displayStatus = 'Cancelled';
+              itemStatusBorderClass = 'history-status-cancelled';
+            }
+
+            var isFailed = rawStatus === 'failed' || rawStatus === 'error';
+            var showLogs = isFailed || rawStatus === 'unknown';
+
+            hhtml += '<div class="history-item ' + itemStatusBorderClass + '" data-status="' + rawStatus + '">';
+            hhtml +=   '<div><strong>' + h.appName + '</strong> <span class="status-badge ' + statusClass + '" style="font-size:8px; padding:2px 6px; margin-left: 6px;">' + displayStatus + '</span></div>';
+            if (showLogs) {
+              hhtml +=   '<button class="btn-logs" data-uuid="' + h.appUuid + '" data-action="view-logs" style="font-size:10px; padding:2px 6px;">Logs</button>';
+            }
+            hhtml += '</div>';
+          }
+          histContainer.innerHTML = hhtml;
+          filterHistory();
+        }
+      }
+
+      // --- Single Message Handler ---
+      window.addEventListener('message', function (event) {
+        var msg = event.data;
+        if (msg.type === 'state-snapshot') {
+          // Mantener estado guardado
+          var currentState = vscode.getState() || {};
+          vscode.setState({
+            apps: msg.apps,
+            depHistory: msg.depHistory,
+            expandedApps: currentState.expandedApps || []
+          });
+          renderFullUI(msg.apps, msg.depHistory);
+          var spinIcon = document.getElementById('refreshIcon');
+          if (spinIcon) { spinIcon.classList.remove('spinning'); }
+        }
+      });
+
+      // --- Restaurar estado guardado al iniciar ---
+      if (saved && saved.apps) {
+        renderFullUI(saved.apps, saved.depHistory);
+      }
+    })();
+  </script>
+</body>
 </html>
