@@ -24,6 +24,7 @@ interface SnapshotApp {
   git_repository: string;
   git_branch: string;
   updated_at: string;
+  consoleUrl?: string;
 }
 
 interface StateSnapshotMessage {
@@ -58,6 +59,7 @@ export class CoolifyWebViewProvider implements vscode.WebviewViewProvider {
   private isDeploying = new Set<string>();
   private deploymentTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
   private readonly DEPLOY_TIMEOUT = 300_000; // 5 min safety break
+  private currentServerUrl?: string;
 
   private restoreState(): void {
     const saved = this.context.workspaceState.get<{
@@ -99,16 +101,30 @@ export class CoolifyWebViewProvider implements vscode.WebviewViewProvider {
   private emitState(): void {
     if (!this.isViewValid()) { return; }
 
-    const apps = this.rawApps.map((a: any) => ({
-      id: a.uuid,
-      name: a.name,
-      status: a.status,
-      displayStatus: this.getEffectiveStatus(a.uuid),
-      fqdn: a.fqdn,
-      git_repository: a.git_repository,
-      git_branch: a.git_branch,
-      updated_at: a.updated_at,
-    }));
+    const serverUrl = this.currentServerUrl || '';
+    const apps = this.rawApps.map((a: any) => {
+      let consoleUrl = `${serverUrl}/project`;
+      const projectUuid = a.project_uuid || a.project?.uuid || a.environment?.project?.uuid;
+      const environmentName = a.environment_name || a.environment?.name || a.environment?.uuid;
+
+      if (projectUuid && environmentName) {
+        consoleUrl = `${serverUrl}/project/${projectUuid}/${environmentName}/application/${a.uuid}`;
+      } else if (projectUuid) {
+        consoleUrl = `${serverUrl}/project/${projectUuid}`;
+      }
+
+      return {
+        id: a.uuid,
+        name: a.name,
+        status: a.status,
+        displayStatus: this.getEffectiveStatus(a.uuid),
+        fqdn: a.fqdn,
+        git_repository: a.git_repository,
+        git_branch: a.git_branch,
+        updated_at: a.updated_at,
+        consoleUrl,
+      };
+    });
 
     this._view!.webview.postMessage({
       type: 'state-snapshot',
@@ -246,11 +262,22 @@ export class CoolifyWebViewProvider implements vscode.WebviewViewProvider {
       return;
     }
 
+    this.currentServerUrl = serverUrl;
+
     try {
       const service = new CoolifyService(serverUrl, token);
       const applications = await service.getApplications();
 
       this.rawApps = this.mergeAppsWithInvalidation(applications);
+
+      if (applications && applications.length > 0) {
+        this.outputChannel.appendLine(
+          `[Refresh] Raw application payload sample keys: ${Object.keys(applications[0]).join(', ')}`
+        );
+        this.outputChannel.appendLine(
+          `[Refresh] Raw application payload sample: ${JSON.stringify(applications[0])}`
+        );
+      }
 
       // Resolve deployments for apps that reached terminal state
       for (const appId of Array.from(this.isDeploying)) {
