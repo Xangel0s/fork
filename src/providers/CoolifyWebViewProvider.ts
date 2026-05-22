@@ -61,6 +61,7 @@ export class CoolifyWebViewProvider implements vscode.WebviewViewProvider {
   private deploymentTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
   private readonly DEPLOY_TIMEOUT = 300_000; // 5 min safety break
   private currentServerUrl?: string;
+  private envMap: Map<number | string, { projectUuid: string; environmentName: string }> = new Map();
 
   private restoreState(): void {
     const saved = this.context.workspaceState.get<{
@@ -86,6 +87,49 @@ export class CoolifyWebViewProvider implements vscode.WebviewViewProvider {
     });
   }
 
+  private async loadEnvironmentMap(service: CoolifyService, force: boolean = false): Promise<void> {
+    if (this.envMap.size > 0 && !force) {
+      return;
+    }
+
+    try {
+      this.outputChannel.appendLine('[Map] Fetching projects to build environment map...');
+      const projects = await service.getProjects();
+      
+      if (force) {
+        this.envMap.clear();
+      }
+
+      for (const project of projects) {
+        if (!project.uuid) { continue; }
+        
+        let environments = project.environments;
+        if (!Array.isArray(environments) || environments.length === 0) {
+          try {
+            environments = await service.getProjectEnvironments(project.uuid);
+          } catch (err) {
+            this.outputChannel.appendLine(`[Map] Failed to fetch environments for project ${project.name || project.uuid}: ${err}`);
+            continue;
+          }
+        }
+
+        if (Array.isArray(environments)) {
+          for (const env of environments) {
+            if (env.id !== undefined && env.name) {
+              this.envMap.set(env.id, {
+                projectUuid: project.uuid,
+                environmentName: env.name
+              });
+            }
+          }
+        }
+      }
+      this.outputChannel.appendLine(`[Map] Rebuilt environment map. Total entries: ${this.envMap.size}`);
+    } catch (error) {
+      this.outputChannel.appendLine(`[Map] Error building environment map: ${error}`);
+    }
+  }
+
   private getEffectiveStatus(appId: string): string {
     const app = this.rawApps.find((a: any) => a.uuid === appId);
     if (!app) { return 'unknown'; }
@@ -105,8 +149,16 @@ export class CoolifyWebViewProvider implements vscode.WebviewViewProvider {
     const serverUrl = this.currentServerUrl || '';
     const apps = this.rawApps.map((a: any) => {
       let consoleUrl = `${serverUrl}/project`;
-      const projectUuid = a.project_uuid || a.project?.uuid || a.environment?.project?.uuid;
-      const environmentName = a.environment_name || a.environment?.name || a.environment?.uuid;
+      let projectUuid = a.project_uuid || a.project?.uuid || a.environment?.project?.uuid;
+      let environmentName = a.environment_name || a.environment?.name || a.environment?.uuid;
+
+      if ((!projectUuid || !environmentName) && a.environment_id !== undefined && a.environment_id !== null) {
+        const envInfo = this.envMap.get(a.environment_id);
+        if (envInfo) {
+          projectUuid = envInfo.projectUuid;
+          environmentName = envInfo.environmentName;
+        }
+      }
 
       if (projectUuid && environmentName) {
         consoleUrl = `${serverUrl}/project/${projectUuid}/${environmentName}/application/${a.uuid}`;
@@ -252,7 +304,7 @@ export class CoolifyWebViewProvider implements vscode.WebviewViewProvider {
   }
 
   // Data Management
-  public async refreshData(): Promise<void> {
+  public async refreshData(forceMapRefresh: boolean = false): Promise<void> {
     if (!this.isViewValid()) { return; }
 
     const serverUrl = await this.configManager.getServerUrl();
@@ -270,6 +322,20 @@ export class CoolifyWebViewProvider implements vscode.WebviewViewProvider {
       const applications = await service.getApplications();
 
       this.rawApps = this.mergeAppsWithInvalidation(applications);
+
+      let hasMissingEnv = false;
+      for (const app of applications as any[]) {
+        if (app.environment_id !== undefined && app.environment_id !== null) {
+          if (!this.envMap.has(app.environment_id)) {
+            hasMissingEnv = true;
+            break;
+          }
+        }
+      }
+
+      if (this.envMap.size === 0 || hasMissingEnv || forceMapRefresh) {
+        await this.loadEnvironmentMap(service, forceMapRefresh || hasMissingEnv);
+      }
 
       if (applications && applications.length > 0) {
         this.outputChannel.appendLine(
@@ -879,7 +945,7 @@ export class CoolifyWebViewProvider implements vscode.WebviewViewProvider {
   private async handleWebViewMessage(message: WebViewMessage): Promise<void> {
     switch (message.type) {
       case 'refresh':
-        await this.refreshData();
+        await this.refreshData(true);
         break;
       case 'deploy':
         if (message.applicationId) {

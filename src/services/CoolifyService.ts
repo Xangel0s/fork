@@ -45,6 +45,14 @@ export class CoolifyService {
     return this.fetchWithAuth<Application[]>('/api/v1/applications');
   }
 
+  async getProjects(): Promise<any[]> {
+    return this.fetchWithAuth<any[]>('/api/v1/projects');
+  }
+
+  async getProjectEnvironments(projectUuid: string): Promise<any[]> {
+    return this.fetchWithAuth<any[]>(`/api/v1/projects/${projectUuid}/environments`);
+  }
+
   async verifyRealStatus(uuid: string): Promise<string> {
     const data = await this.fetchWithAuth<{ status: string }>(
       `/api/v1/applications/${uuid}`
