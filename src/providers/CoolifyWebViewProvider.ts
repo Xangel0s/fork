@@ -161,7 +161,7 @@ export class CoolifyWebViewProvider implements vscode.WebviewViewProvider {
       }
 
       if (projectUuid && environmentName) {
-        consoleUrl = `${serverUrl}/project/${projectUuid}/${environmentName}/application/${a.uuid}`;
+        consoleUrl = `${serverUrl}/project/${projectUuid}/environment/${environmentName}/application/${a.uuid}`;
       } else if (projectUuid) {
         consoleUrl = `${serverUrl}/project/${projectUuid}`;
       }
