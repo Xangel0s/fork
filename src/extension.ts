@@ -11,7 +11,8 @@ export function activate(context: vscode.ExtensionContext) {
   const configManager = new ConfigurationManager(context);
   webviewProvider = new CoolifyWebViewProvider(
     context.extensionUri,
-    configManager
+    configManager,
+    context
   );
 
   // Register the webview provider
