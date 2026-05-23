@@ -23,6 +23,7 @@ We localized all user-facing strings to English, resolved the webview popup bloc
 - **Header Commit Badge**: Added a compact, monospace commit hash badge (e.g. `9425377`) next to the application name in the collapsed card header for instant visibility. Clicking the badge opens the commit directly on GitHub.
 - **Details Section Link**: Added a detailed `Commit:` row under Repository and Branch in the expanded details section of [webview.html](file:///c:/Users/Lenovo/Documents/coolify_extesion_manager/coolify-vscode-extension/src/templates/webview.html).
 - **Interactive Links**: Both links target `https://github.com/{username}/{repo}/commit/{sha}` and utilize the extension's custom redirection system to bypass webview sandbox restrictions and prevent popup blocker errors.
+- **Generic SHA Filtering**: Implemented a filter that ignores generic `"HEAD"` (case-insensitive) values returned by Coolify, preventing redundant display when a specific commit has not been resolved.
 
 ---
 
@@ -41,6 +42,8 @@ We localized all user-facing strings to English, resolved the webview popup bloc
 
 ### Version Control
 - All changes have been committed cleanly:
+  - `62f2b46` `fix(webview): do not render commit badge or row when commit is HEAD`
+  - `93dd8d6` `docs: update walkthrough.md to document header commit badge and commits`
   - `7a35c6d` `feat(webview): display short commit hash badge in collapsed card header`
   - `6572ea2` `docs: update walkthrough to document git commit link rendering and hash list`
   - `0a85f3b` `feat(webview): display active git commit hash as a clickable link on application cards`
