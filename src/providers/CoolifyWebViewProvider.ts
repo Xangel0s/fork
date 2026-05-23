@@ -178,6 +178,7 @@ export class CoolifyWebViewProvider implements vscode.WebviewViewProvider {
         fqdn: a.fqdn,
         git_repository: a.git_repository,
         git_branch: a.git_branch,
+        git_commit_sha: a.git_commit_sha,
         updated_at: a.updated_at,
         consoleUrl,
       };

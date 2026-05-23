@@ -793,6 +793,22 @@
             html +=     '<div class="details-grid">';
             html +=       '<div class="details-row"><span class="label">Repository:</span><span class="value" title="' + (app.git_repository || 'N/A') + '">' + (app.git_repository || 'N/A') + '</span></div>';
             html +=       '<div class="details-row"><span class="label">Branch:</span><span class="value" title="' + (app.git_branch || 'N/A') + '">' + (app.git_branch || 'N/A') + '</span></div>';
+            if (app.git_commit_sha) {
+              const shortSha = app.git_commit_sha.substring(0, 7);
+              let commitVal = shortSha;
+              if (app.git_repository) {
+                let repoUrl = app.git_repository;
+                if (!repoUrl.startsWith('http')) {
+                  repoUrl = 'https://github.com/' + repoUrl;
+                }
+                if (repoUrl.endsWith('.git')) {
+                  repoUrl = repoUrl.slice(0, -4);
+                }
+                const gitLink = repoUrl + '/commit/' + app.git_commit_sha;
+                commitVal = '<a href="#" class="commit-link" onclick="event.stopPropagation(); openLink(\'' + gitLink + '\'); return false;" style="color: var(--vscode-textLink-foreground); text-decoration: none;">' + shortSha + '</a>';
+              }
+              html +=     '<div class="details-row"><span class="label">Commit:</span><span class="value" title="' + app.git_commit_sha + '">' + commitVal + '</span></div>';
+            }
             html +=       '<div class="details-row"><span class="label">Last Updated:</span><span class="value">' + formatDate(app.updated_at) + '</span></div>';
             html +=     '</div>';
             html +=   '</div>';
