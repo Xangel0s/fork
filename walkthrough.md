@@ -20,8 +20,9 @@ We localized all user-facing strings to English, resolved the webview popup bloc
 
 ### 4. Git Commit Link Rendering
 - **Backend Mapping**: Extended the mapped application object in `emitState()` to pass `git_commit_sha` from the Coolify API to the webview.
-- **Frontend Display**: Added a `Commit:` row under Repository and Branch in [webview.html](file:///c:/Users/Lenovo/Documents/coolify_extesion_manager/coolify-vscode-extension/src/templates/webview.html).
-- **Interactive Link**: The short 7-character commit hash is formatted as a clickable link targeting `https://github.com/{username}/{repo}/commit/{sha}`. Clicking the commit opens it securely in the browser using the extension's custom link navigation system, ensuring no sandbox popup blocker errors.
+- **Header Commit Badge**: Added a compact, monospace commit hash badge (e.g. `9425377`) next to the application name in the collapsed card header for instant visibility. Clicking the badge opens the commit directly on GitHub.
+- **Details Section Link**: Added a detailed `Commit:` row under Repository and Branch in the expanded details section of [webview.html](file:///c:/Users/Lenovo/Documents/coolify_extesion_manager/coolify-vscode-extension/src/templates/webview.html).
+- **Interactive Links**: Both links target `https://github.com/{username}/{repo}/commit/{sha}` and utilize the extension's custom redirection system to bypass webview sandbox restrictions and prevent popup blocker errors.
 
 ---
 
@@ -40,6 +41,9 @@ We localized all user-facing strings to English, resolved the webview popup bloc
 
 ### Version Control
 - All changes have been committed cleanly:
+  - `7a35c6d` `feat(webview): display short commit hash badge in collapsed card header`
+  - `6572ea2` `docs: update walkthrough to document git commit link rendering and hash list`
+  - `0a85f3b` `feat(webview): display active git commit hash as a clickable link on application cards`
   - `afa9551` `fix(webview): resolve environment uuid instead of human name for console urls`
   - `4e805f0` `fix(webview): add missing environment segment to console url template`
   - `2d36e7b` `docs: update task list to include url redirect fix and repository configuration`
