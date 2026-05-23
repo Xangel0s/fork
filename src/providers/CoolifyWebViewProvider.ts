@@ -62,6 +62,10 @@ export class CoolifyWebViewProvider implements vscode.WebviewViewProvider {
   private readonly DEPLOY_TIMEOUT = 300_000; // 5 min safety break
   private currentServerUrl?: string;
   private envMap: Map<number | string, { projectUuid: string; environmentName: string }> = new Map();
+  /** Cache: app UUID -> resolved full commit SHA from GitHub API */
+  private gitCommitCache: Map<string, string> = new Map();
+  /** Set of app UUIDs currently being resolved to avoid duplicate in-flight requests */
+  private resolvingCommits: Set<string> = new Set();
 
   private restoreState(): void {
     const saved = this.context.workspaceState.get<{
@@ -130,6 +134,49 @@ export class CoolifyWebViewProvider implements vscode.WebviewViewProvider {
     }
   }
 
+  /**
+   * Resolves the latest commit SHA for a GitHub repository branch via the public API.
+   * Caches the result and re-emits state so the webview updates immediately.
+   * @param appId - Application UUID used as the cache key
+   * @param repository - Git repository (shorthand 'user/repo' or full HTTPS URL)
+   * @param branch - Branch name to resolve (e.g. 'main')
+   */
+  private async resolveGitCommit(appId: string, repository: string, branch: string): Promise<void> {
+    if (!repository || !branch) { return; }
+
+    // Normalise to 'owner/repo' path for GitHub API
+    let repoPath = repository.trim();
+    if (repoPath.startsWith('http://') || repoPath.startsWith('https://')) {
+      try {
+        const url = new URL(repoPath);
+        if (!url.hostname.includes('github.com')) { return; }
+        repoPath = url.pathname.replace(/^\/|\.git$/g, '');
+      } catch { return; }
+    } else {
+      // Strip trailing .git if present
+      repoPath = repoPath.replace(/\.git$/, '');
+    }
+
+    if (!repoPath.includes('/')) { return; }
+
+    try {
+      const response = await fetch(
+        `https://api.github.com/repos/${repoPath}/commits/${branch}`,
+        { headers: { 'User-Agent': 'Coolify-VSCode-Extension' } }
+      );
+      if (response.ok) {
+        const data = await response.json() as { sha?: string };
+        if (data?.sha) {
+          this.gitCommitCache.set(appId, data.sha);
+          this.outputChannel.appendLine(`[Commit] Resolved ${appId} -> ${data.sha.substring(0, 7)}`);
+          this.emitState();
+        }
+      }
+    } catch (err) {
+      this.outputChannel.appendLine(`[Commit] Failed to resolve commit for ${appId}: ${err}`);
+    }
+  }
+
   private getEffectiveStatus(appId: string): string {
     const app = this.rawApps.find((a: any) => a.uuid === appId);
     if (!app) { return 'unknown'; }
@@ -170,6 +217,19 @@ export class CoolifyWebViewProvider implements vscode.WebviewViewProvider {
         consoleUrl = `${serverUrl}/project/${projectUuid}`;
       }
 
+      // Resolve real commit SHA when Coolify returns only 'HEAD'
+      let gitCommitSha: string | undefined = a.git_commit_sha;
+      if ((!gitCommitSha || gitCommitSha.toLowerCase() === 'head') && a.git_repository) {
+        const cached = this.gitCommitCache.get(a.uuid);
+        if (cached) {
+          gitCommitSha = cached;
+        } else if (!this.resolvingCommits.has(a.uuid)) {
+          this.resolvingCommits.add(a.uuid);
+          this.resolveGitCommit(a.uuid, a.git_repository, a.git_branch || 'main')
+            .finally(() => this.resolvingCommits.delete(a.uuid));
+        }
+      }
+
       return {
         id: a.uuid,
         name: a.name,
@@ -178,7 +238,7 @@ export class CoolifyWebViewProvider implements vscode.WebviewViewProvider {
         fqdn: a.fqdn,
         git_repository: a.git_repository,
         git_branch: a.git_branch,
-        git_commit_sha: a.git_commit_sha,
+        git_commit_sha: gitCommitSha,
         updated_at: a.updated_at,
         consoleUrl,
       };
