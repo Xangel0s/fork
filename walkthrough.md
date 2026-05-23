@@ -18,6 +18,11 @@ We localized all user-facing strings to English, resolved the webview popup bloc
 - **Environment Mapping Cache**: Implemented an in-memory cache mapping (`envMap`) in [CoolifyWebViewProvider.ts](file:///c:/Users/Lenovo/Documents/coolify_extesion_manager/coolify-vscode-extension/src/providers/CoolifyWebViewProvider.ts) linking `environment_id` -> `{ projectUuid, environmentName }`. This cache is populated/rebuilt dynamically when encountering new environments or performing a manual refresh, avoiding expensive N+1 queries.
 - **Dynamic Console URL Resolution**: Updated `emitState()` to resolve fallback console URLs matching `http://<server>/project/<projectUuid>/environment/<environmentName>/application/<applicationUuid>` when the application lacks a direct public FQDN, rather than defaulting to the generic `/project` root url.
 
+### 4. Git Commit Link Rendering
+- **Backend Mapping**: Extended the mapped application object in `emitState()` to pass `git_commit_sha` from the Coolify API to the webview.
+- **Frontend Display**: Added a `Commit:` row under Repository and Branch in [webview.html](file:///c:/Users/Lenovo/Documents/coolify_extesion_manager/coolify-vscode-extension/src/templates/webview.html).
+- **Interactive Link**: The short 7-character commit hash is formatted as a clickable link targeting `https://github.com/{username}/{repo}/commit/{sha}`. Clicking the commit opens it securely in the browser using the extension's custom link navigation system, ensuring no sandbox popup blocker errors.
+
 ---
 
 ## Verification
@@ -35,14 +40,16 @@ We localized all user-facing strings to English, resolved the webview popup bloc
 
 ### Version Control
 - All changes have been committed cleanly:
-  - `fix(webview): resolve environment uuid instead of human name for console urls`
-  - `fix(webview): add missing environment segment to console url template`
-  - `docs: update task list to include url redirect fix and repository configuration`
-  - `docs: add implementation plan, task, and walkthrough documents`
-  - `feat: resolve project and environment mapping to fix container console URLs`
-  - `feat(webview): change dashboard icon to open link icon and fix sandbox link navigation`
-  - `feat(webview): add fallback dashboard button for containers without FQDN`
-  - `refactor: add DOM types in tsconfig and pass extension context to webview provider`
-  - `feat(webview): add open URL button and localize UI and logs to English`
-  - `feat(webview): change primary accent color to purple (#6b16ed)`
-  - `feat(webview): redesign layout into modern modules with collapsible cards`
+  - `afa9551` `fix(webview): resolve environment uuid instead of human name for console urls`
+  - `4e805f0` `fix(webview): add missing environment segment to console url template`
+  - `2d36e7b` `docs: update task list to include url redirect fix and repository configuration`
+  - `d8a22fa` `docs: add implementation plan, task, and walkthrough documents`
+  - `5a6794e` `feat: resolve project and environment mapping to fix container console URLs`
+  - `5e573b8` `feat(webview): change dashboard icon to open link icon and fix sandbox link navigation`
+  - `ed61465` `feat(webview): add fallback dashboard button for containers without FQDN`
+  - `1582561` `refactor: add DOM types in tsconfig and pass extension context to webview provider`
+  - `d4f7b7e` `feat(webview): add open URL button and localize UI and logs to English`
+  - `1c5105e` `feat(webview): change primary accent color to purple (#6b16ed)`
+  - `e4f2ddc` `docs: add AGENTS.md describing guidelines and architecture`
+  - `f344d7f` `feat(webview): redesign layout into modern modules with collapsible cards`
+
