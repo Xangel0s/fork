@@ -794,7 +794,7 @@
             }
 
             var commitBadge = '';
-            if (app.git_commit_sha) {
+            if (app.git_commit_sha && app.git_commit_sha.toLowerCase() !== 'head') {
               const shortSha = app.git_commit_sha.substring(0, 7);
               let gitLink = app.git_repository;
               if (gitLink) {
@@ -840,7 +840,7 @@
             html +=     '<div class="details-grid">';
             html +=       '<div class="details-row"><span class="label">Repository:</span><span class="value" title="' + (app.git_repository || 'N/A') + '">' + (app.git_repository || 'N/A') + '</span></div>';
             html +=       '<div class="details-row"><span class="label">Branch:</span><span class="value" title="' + (app.git_branch || 'N/A') + '">' + (app.git_branch || 'N/A') + '</span></div>';
-            if (app.git_commit_sha) {
+            if (app.git_commit_sha && app.git_commit_sha.toLowerCase() !== 'head') {
               const shortSha = app.git_commit_sha.substring(0, 7);
               let commitVal = shortSha;
               if (app.git_repository) {
