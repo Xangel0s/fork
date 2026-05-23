@@ -179,6 +179,30 @@
       text-overflow: ellipsis;
     }
 
+    .commit-badge, .commit-badge-link {
+      font-family: var(--vscode-editor-font-family, monospace);
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--vscode-descriptionForeground);
+      background-color: var(--vscode-badge-background, rgba(128, 128, 128, 0.1));
+      padding: 1px 5px;
+      border-radius: 3px;
+      border: 1px solid var(--vscode-widget-border, rgba(128, 128, 128, 0.15));
+      display: inline-flex;
+      align-items: center;
+      height: 14px;
+      line-height: 1;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .commit-badge-link:hover {
+      color: var(--vscode-textLink-activeForeground, var(--vscode-textLink-foreground));
+      background-color: var(--vscode-badge-background, rgba(128, 128, 128, 0.2));
+      border-color: var(--vscode-focusBorder, var(--accent-color));
+      text-decoration: none;
+    }
+
     .card-subtitle-wrapper {
       display: flex;
       align-items: center;
@@ -769,9 +793,32 @@
               }
             }
 
+            var commitBadge = '';
+            if (app.git_commit_sha) {
+              const shortSha = app.git_commit_sha.substring(0, 7);
+              let gitLink = app.git_repository;
+              if (gitLink) {
+                if (!gitLink.startsWith('http')) {
+                  gitLink = 'https://github.com/' + gitLink;
+                }
+                if (gitLink.endsWith('.git')) {
+                  gitLink = gitLink.slice(0, -4);
+                }
+                gitLink = gitLink + '/commit/' + app.git_commit_sha;
+                commitBadge = '<a href="#" class="commit-badge-link" onclick="event.stopPropagation(); openLink(\'' + gitLink + '\'); return false;" title="Open commit on GitHub: ' + app.git_commit_sha + '">' + shortSha + '</a>';
+              } else {
+                commitBadge = '<span class="commit-badge" title="Commit: ' + app.git_commit_sha + '">' + shortSha + '</span>';
+              }
+            }
+
             html +=   '<div class="card-header" onclick="toggleDetails(\'' + app.id + '\')">';
             html +=     '<div style="display:flex; flex-direction:column; gap:2px; min-width:0; flex:1">';
-            html +=       '<div class="card-title app-name">' + app.name + '</div>';
+            html +=       '<div style="display:flex; align-items:center; gap:8px; min-width:0">';
+            html +=         '<div class="card-title app-name" style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">' + app.name + '</div>';
+            if (commitBadge) {
+              html +=       commitBadge;
+            }
+            html +=       '</div>';
             html +=       '<div class="card-subtitle-wrapper">';
             html +=         '<div class="card-subtitle" title="' + (app.fqdn || 'No URL configured') + '">' + (app.fqdn || 'No URL configured') + '</div>';
             if (primaryUrl) {
