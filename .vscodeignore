@@ -12,3 +12,7 @@ vsc-extension-quickstart.md
 **/*.map
 **/*.ts
 **/.vscode-test.*
+implementation_plan.md
+task.md
+walkthrough.md
+AGENTS.md
